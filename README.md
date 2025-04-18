@@ -27,3 +27,19 @@ npm run dev
 ```sh
 npm run build
 ```
+
+un dossier .env doit être demandé pour faire tourner le backend
+
+### List of API Calls 
+
+```sh
+POST : http://localhost:5000/api/user/register
+POST : http://localhost:5000/api/user/login
+GET : http://localhost:5000/api/users/me
+POST : http://localhost:5000/api/reviews
+GET : http://localhost:5000/api/reviews/albums/:albumId
+GET : http://localhost:5000/api/reviews/user/user/:userId
+GET : http://localhost:5000/api/reviews/me
+PATCH/DELETE : http://localhost:5000/api/reviews/:id
+GET : http://localhost:5000/api/reviews/album/:albumId/user
+```
