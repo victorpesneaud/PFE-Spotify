@@ -72,6 +72,7 @@ const searchAlbum = async () => {
 <style scoped>
 .home-container {
   padding: 2rem;
+  background: linear-gradient(135deg, #2d1b69 0%, #462985 100%);
 }
 
 .search-input {
@@ -166,5 +167,62 @@ const searchAlbum = async () => {
 .favorite-album {
     max-width: 160px;
     margin-right: 20px;
+}
+
+.page-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #2d1b69 0%, #462985 100%);
+  padding: 2rem;
+}
+
+.album-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.album-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.2s ease;
+  text-decoration: none;
+  color: white;
+}
+
+.album-card:hover {
+  transform: translateY(-2px);
+}
+
+.album-cover {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
+.album-info {
+  padding: 1rem;
+}
+
+.album-info h3 {
+  margin: 0;
+  font-size: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.album-info p {
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+  color: #b3b3b3;
+}
+
+@media (max-width: 768px) {
+  .album-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+  }
 }
 </style>
