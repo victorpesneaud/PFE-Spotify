@@ -33,9 +33,12 @@
         <router-link :to="`/user/${userStore.user?.email}`" class="nav-link">
           {{ userStore.user?.name || userStore.user?.email }}
         </router-link>
-        <button @click="handleLogout" class="logout-btn">
+        <button v-if="userStore.isAuthenticated" @click="handleLogout" class="logout-btn">
           Logout
         </button>
+        <router-link v-else to="/login" class="login-btn">
+          Login
+        </router-link>
       </div>
       
       <div class="nav-right" v-if="userStore.isAuthenticated">
@@ -236,17 +239,56 @@ const handleLogout = () => {
   border-color: white;
 }
 
+.login-btn {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.login-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: white;
+}
+
 @media (max-width: 768px) {
   .search-input {
     width: 200px;
   }
 
+  .header {
+    height: auto;
+    min-height: var(--header-height);
+    padding: 1rem 0;
+    position: fixed;
+    bottom: 0;
+    top: auto;
+    width: 100%;
+    z-index: 1000;
+  }
+
   .nav-container {
     padding: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
   }
 
   .nav-left {
     gap: 1rem;
+  }
+
+  .logout-btn {
+    display: none;
+  }
+
+  .search-results {
+    bottom: 100%;
+    top: auto;
+    margin-bottom: 0.5rem;
+    margin-top: 0;
   }
 }
 </style> 

@@ -102,4 +102,13 @@ header {
     flex-wrap: wrap;
   }
 }
+
+@media (max-width: 768px) {
+  main {
+  flex: 1;
+  width: 100%;
+  margin-bottom: var(--header-height);
+  margin-top: 0;
+}
+}
 </style>

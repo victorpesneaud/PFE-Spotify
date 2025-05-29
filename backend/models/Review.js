@@ -21,6 +21,11 @@ const reviewSchema = new mongoose.Schema({
         trim: true,
         maxLength: 1000
     },
+    albumInfo: { 
+        title: String,
+        imageUrl: String,
+        artists: [String]
+    },
     createdAt: {
         type: Date,
         default: Date.now

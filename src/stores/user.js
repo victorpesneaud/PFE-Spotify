@@ -5,14 +5,13 @@ export const useUserStore = defineStore('user', {
     user: JSON.parse(localStorage.getItem('user')) || null,
     token: localStorage.getItem('token') || '',
     spotifyToken: localStorage.getItem('spotifyToken') || '',
-    favorites: JSON.parse(localStorage.getItem('favorites')) || [],
-    reviews: JSON.parse(localStorage.getItem('reviews')) || []
+    favorites: localStorage.getItem('favorites') || [],
+    reviews: []
   }),
 
   getters: {
     isAuthenticated: (state) => !!state.token,
     currentUser: (state) => state.user,
-    recentReviews: (state) => [...state.reviews].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 5)
   },
 
   actions: {
@@ -42,6 +41,10 @@ export const useUserStore = defineStore('user', {
 
         // Get Spotify API token
         await this.getSpotifyToken();
+
+        // Fetch favorites from backend
+        const favorites = await fetchFavoritesFromBackend(token);
+        this.favorites = favorites;
 
         return true;
       } catch (error) {
@@ -125,39 +128,59 @@ export const useUserStore = defineStore('user', {
       localStorage.removeItem('reviews')
     },
 
-    toggleFavorite(album) {
+    async toggleFavorite(album) {
       const exists = this.favorites.find(a => a.id === album.id)
       if (exists) {
         this.favorites = this.favorites.filter(a => a.id !== album.id)
       } else {
         this.favorites.push(album)
       }
-      localStorage.setItem('favorites', JSON.stringify(this.favorites))
+      await syncFavoritesToBackend(this.favorites, this.token)
     },
 
     isFavorite(albumId) {
       return this.favorites.some(a => a.id === albumId)
     },
 
-    addReview(albumId, rating, comment) {
-      const review = {
-        id: Date.now().toString(),
-        albumId,
-        rating,
-        comment,
-        timestamp: new Date().toISOString()
+    async fetchReviewsFromApi() {
+      try {
+        const response = await fetch('http://localhost:5000/api/reviews/me', {
+          headers: {
+            'Authorization': `Bearer ${this.token}`
+          }
+        });
+        if (!response.ok) throw new Error('Failed to fetch Reviews');
+        const myReviews = await response.json();
+        console.log('reviews', myReviews)
+        this.reviews = myReviews;
+        return myReviews;
+      } catch (error) {
+        console.error('Error fetching Reviews:', error);
+        throw error;
       }
-      this.reviews.push(review)
-      localStorage.setItem('reviews', JSON.stringify(this.reviews))
-      return review
     },
 
-    getAlbumReviews(albumId) {
-      return this.reviews.filter(review => review.albumId === albumId)
-    },
-
-    getRecentReviews(limit = 5) {
-      return [...this.reviews].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, limit)
+    async syncFavoritesToBackend() {
+      try {
+        await fetch('http://localhost:5000/api/users/me/favorites', {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.token}`
+          },
+          body: JSON.stringify({ favorites: this.favorites })
+        });
+      } catch (error) {
+        console.error('Error syncing favorites:', error);
+        throw error;
+      }
     }
   }
 })
+
+async function fetchFavoritesFromBackend(token) {
+  const res = await fetch('http://localhost:5000/api/users/me/favorites', {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  return await res.json();
+}

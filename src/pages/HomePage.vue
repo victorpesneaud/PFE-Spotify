@@ -1,8 +1,48 @@
 <template>
     <div class="home-container">
-        <h1>Bienvenue sur la page d'accueil {{ userStore.prenom }}!</h1>
-        <p>Token Spotify : {{ userStore.token }}</p>
-
+        <h1 v-if="userStore.isAuthenticated">Welcome back, {{ userStore.user.name }}! Here's what the world is listening to. </h1>
+        <h1 v-else>Welcome to Spotifind! The application can only work once you're logged in, please</h1>
+        <h1 v-if="!userStore.isAuthenticated"><router-link to="/login">Login or Register here</router-link></h1>
+        <h4 v-if="userStore.isAuthenticated">This homepage will become customized as you follow active members on Spotifind. </h4>
+      
+        <div v-if="!newPopularAlbums.length == 0" class="favorites-section">
+        <div class="favorites-header">
+            <h2>Nouveautés populaires </h2>
+        </div>
+        <div class="favorites-list-wrapper">
+            <div class="favorites-list" ref="favoritesList">
+                <router-link
+                v-for="album in newPopularAlbums"
+                :key="album.id"
+                :to="`/album/${album.id}`"
+                class="favorite-album"
+                >
+                <img :src="album.images?.[0]?.url" />
+                <h3>{{album.name}}</h3>
+                </router-link>
+            </div>
+        </div>
+    </div>
+      <div v-if="!newAlbums.length == 0" class="favorites-section">
+        <div class="favorites-header">
+            <h2>Nouveautés Rock</h2>
+        </div>
+        <div class="favorites-list-wrapper">
+            <button class="arrow left" @click="scrollFavorites('left')">&#8592;</button>
+            <div class="favorites-list" ref="favoritesList">
+                <router-link
+                v-for="album in newAlbums"
+                :key="album.id"
+                :to="`/album/${album.id}`"
+                class="favorite-album"
+                >
+                <img :src="album.images?.[0]?.url" />
+                <h3>{{album.name}}</h3>
+                </router-link>
+            </div>
+            <button class="arrow right" @click="scrollFavorites('right')">&#8594;</button>
+        </div>
+    </div>
     <div v-if="userStore.favorites.length" class="favorites-section">
         <div class="favorites-header">
             <h2>Favoris ({{ userStore.favorites.length }})</h2>
@@ -20,9 +60,6 @@
             </router-link>
         </div>
     </div>
-
-    <input v-model="searchTerm" placeholder="Rechercher un album" class="search-input" />
-    <button @click="searchAlbum" class="search-btn">Rechercher</button>
 
     <div v-if="albums.length" class="albums-grid">
       <div v-for="album in albums" :key="album.id" class="album-card">
@@ -47,30 +84,63 @@ import { onMounted } from 'vue'
 const userStore = useUserStore()
 const searchTerm = ref('')
 const albums = ref([])
+const newAlbums = ref([])
+const newPopularAlbums = ref([])
 const router = useRouter()
+const favoritesList = ref(null)
 
-const searchAlbum = async () => {
-    const token = userStore.token
-    const query = encodeURIComponent(searchTerm.value)
+onMounted(() => {
+    searchNewAlbum()
+    searchNewPopularAlbum()
+    console.log('newAlbums', newAlbums)
+    userStore.fetchReviewsFromApi()
 
-    const res = await fetch(`https://api.spotify.com/v1/search?q=${query}&type=album`, {
+})
+
+
+const searchNewAlbum = async () => { 
+    const token = userStore.spotifyToken
+    const res = await fetch(`https://api.spotify.com/v1/search?q=genre:"rock"&type=album`, {
         headers: {
-        Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${token}`
         }
     })
-
-    onMounted(() => {
-    console.log('✅ HomePage mounted')
-    })
-  const data = await res.json()
-  albums.value = data.albums.items
-  console.log(albums)
+    
+    const data = await res.json()
+    console.log('data', data)
+    newAlbums.value = data.albums.items
 }
 
+const searchNewPopularAlbum = async () => { 
+    const token = userStore.spotifyToken
+    const res = await fetch(`https://api.spotify.com/v1/browse/new-releases`, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    })
+    
+    const data = await res.json()
+    console.log('searchNewPopularAlbum', data)
+    newPopularAlbums.value = data.albums.items
+}
+
+function scrollFavorites(direction) {
+  const el = favoritesList.value
+  const scrollAmount = 600 // Adjust as needed
+  if (direction === 'left') {
+    el.scrollBy({ left: -scrollAmount, behavior: 'smooth' })
+  } else {
+    el.scrollBy({ left: scrollAmount, behavior: 'smooth' })
+  }
+}
 </script>
 
 <style scoped>
+
 .home-container {
+  text-align: center;
+  margin: 0 auto;
+  width: 80%;
   padding: 2rem;
   background: linear-gradient(135deg, #2d1b69 0%, #462985 100%);
 }
@@ -149,6 +219,11 @@ const searchAlbum = async () => {
   display: flex;
   gap: 0.5rem;
   overflow-x: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;  /* IE 10+ */
+}
+.favorites-list::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Webkit */
 }
 
 .favorite-album img {
@@ -224,5 +299,40 @@ const searchAlbum = async () => {
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 1rem;
   }
+}
+
+.favorites-list-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  background: rgba(44, 44, 44, 0.7);
+  color: white;
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s;
+  padding: 10px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.arrow.left {
+  left: 0;
+}
+.arrow.right {
+  right: 0;
+}
+
+.favorites-list-wrapper:hover .arrow {
+  opacity: 1;
+  pointer-events: auto;
 }
 </style>

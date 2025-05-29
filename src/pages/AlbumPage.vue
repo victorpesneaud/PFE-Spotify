@@ -10,6 +10,9 @@
                 </a>
                 <div class="album-info">
                     <h1 class="album-title">{{ album.name }}</h1>
+                    <div v-if="meanRating !== null" class="mean-rating">
+                        User average rating: {{ meanRating }} / 5
+                    </div>
                     <h2 class="artist-name">{{ album.artists.map(a => a.name).join(', ') }}</h2>
                     <p class="album-year">{{ new Date(album.release_date).getFullYear() }}</p>
                     <button 
@@ -78,17 +81,22 @@
                         No reviews yet. Be the first to review this album!
                     </div>
                     <div v-else class="review-items">
-                        <div v-for="review in reviewsStore.reviews" :key="review.id" class="review-item">
+                      <div v-for="review in reviewsStore.reviews" :key="review._id" class="review-item">
                             <div class="review-header">
                                 <div class="review-user">
-                                    <span class="user-name">{{ review.userName }}</span>
+                                    <span class="user-name">{{ review.user?.name || review.userName || 'Unknown user' }}</span>
                                     <div class="review-rating">
                                         <span v-for="n in 5" :key="n" class="star" :class="{ filled: n <= review.rating }">
                                             ★
                                         </span>
                                     </div>
+                                    <span>{{ review.comment }} </span>
                                 </div>
-                                <span class="review-date">{{ new Date(review.createdAt).toLocaleDateString() }}</span>
+                                <div class="review-actions">
+                                    <span class="review-date">{{ new Date(review.createdAt).toLocaleDateString() }}</span>
+                                    <span class="review-date">Modifier</span>
+                                    <span class="review-date" @click="handleDeleteReview(review._id)">Supprimer</span>
+                                </div>
                             </div>
                             <p class="review-content">{{ review.content }}</p>
                         </div>
@@ -122,7 +130,15 @@ const isFavorited = computed(() => {
     return userStore.favorites.some(fav => fav.id === album.value?.id)
 })
 
+const meanRating = computed(() => {
+  const reviews = reviewsStore.reviews
+  if (!reviews || reviews.length === 0) return null
+  const sum = reviews.reduce((acc, review) => acc + (review.rating || 0), 0)
+  return (sum / reviews.length).toFixed(1)
+})
+
 onMounted(async () => {
+    reviewsStore.reviews = []
     try {
         const albumId = route.params.id
         
@@ -161,11 +177,17 @@ onMounted(async () => {
         }
 
         await reviewsStore.fetchReviews(albumId)
+
+        console.log('Type of reviewsStore.reviews:', typeof reviewsStore.reviews)
+        console.log('Is reviewsStore.reviews a ref?', '$value' in reviewsStore.reviews)
+        console.log('Raw reviews:', reviewsStore.reviews)
+        console.log('Raw reviews.value:', reviewsStore.reviews?.value)
     } catch (err) {
         console.error('Album loading error:', err)
         error.value = 'Failed to load album. Please try again later.'
     }
 })
+
 
 const toggleFavorite = () => {
     if (album.value) {
@@ -185,17 +207,30 @@ const handleTabChange = (tabId) => {
 
 const submitReview = async () => {
     if (!newReview.value.trim()) return
-    
     await reviewsStore.addReview(route.params.id, {
-        content: newReview.value,
+        comment: newReview.value,
         rating: rating.value,
         userId: userStore.user.id,
-        userName: userStore.user.name
+        userName: userStore.user.name,
+        timestamp: new Date().toISOString(),
+        albumInfo: {
+            title: album.value.name,
+            imageUrl: album.value.images[0]?.url,
+            artists: album.value.artists.map(a => a.name)
+        }
     })
-    
+    console.log('review added')
+    console.log('newReview', newReview.value)
     newReview.value = ''
     rating.value = 5
 }
+
+const handleDeleteReview = async (reviewId) => {
+    if (confirm('Are you sure you want to delete this review?')) {
+        await reviewsStore.deleteReview(reviewId)
+    }
+}
+
 </script>
 
 <style scoped>
@@ -327,7 +362,6 @@ const submitReview = async () => {
 .track-info {
     flex: 1;
     display: flex;
-    justify-content: space-between;
     align-items: center;
 }
 
@@ -486,7 +520,7 @@ const submitReview = async () => {
 }
 
 .star {
-    color: rgba(255, 255, 255, 0.3);
+    color: rgba(207, 204, 38, 1);
 }
 
 .star.filled {
@@ -508,6 +542,12 @@ const submitReview = async () => {
     color: #ff4b4b;
 }
 
+.review-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
 @media (max-width: 768px) {
     .review-header {
         flex-direction: column;
@@ -518,5 +558,14 @@ const submitReview = async () => {
     .review-date {
         font-size: 0.8rem;
     }
+}
+
+.mean-rating {
+  font-size: 1.2rem;
+  color: #ffd700;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 </style>

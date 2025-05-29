@@ -208,7 +208,21 @@ app.get('/api/reviews/album/:albumId/user', auth, async (req, res) => {
     }
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-}); 
+app.patch('/api/users/me/favorites', auth, async (req, res) => {
+    try {
+      req.user.favorites = req.body.favorites;
+      await req.user.save();
+      res.send(req.user.favorites);
+    } catch (error) {
+      res.status(400).send(error);
+    }
+});
+
+app.get('/api/users/me/favorites', auth, async (req, res) => {
+    res.send(req.user.favorites);
+});
+
+app.listen(5000, () => {
+  console.log('Server running on port 5000');
+});
+

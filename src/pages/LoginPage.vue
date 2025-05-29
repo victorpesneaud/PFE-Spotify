@@ -23,13 +23,13 @@
           type="email"
           placeholder="Email" 
           required
-        /> test@spotify.com
+        /> 
         <input 
           v-model="loginForm.password" 
           type="password" 
           placeholder="Password" 
           required
-        /> 123456
+        /> 
         <button type="submit" :disabled="isLoading">
           {{ isLoading ? 'Signing in...' : 'Sign In' }}
         </button>
@@ -72,7 +72,7 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { nextTick } from 'vue'

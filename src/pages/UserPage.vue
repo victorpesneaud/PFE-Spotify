@@ -27,22 +27,27 @@
         </div>
       </div>
 
-      <div class="reviews-section" v-if="reviews.length">
+      <div class="reviews-section" v-if="userStore.reviews.length">
         <h2>Recent Reviews</h2>
         <div class="reviews-list">
-          <div v-for="review in reviews" :key="review.id" class="review-card">
-            <div class="review-header">
-              <h3>{{ getAlbumName(review.albumId) }}</h3>
+          <div v-for="review in userStore.reviews.slice(0, 5)" :key="review.id" class="review-card">
+            <div class="review-main">
+              <img :src="review.albumInfo?.imageUrl" alt="album cover" class="album-cover-reviews">
+              <div class="review-details">
+                <router-link
+                  :to="`/album/${review.albumId}`"
+                  class="review-title-link"
+                >
+                  <h3 class="review-title">{{ review.albumInfo?.title || getAlbumName(review.albumId) }}</h3>
+                </router-link>
+                <p class="review-comment">{{ review.comment }}</p>
+              </div>
               <div class="rating">
                 {{ "⭐".repeat(review.rating) }}
               </div>
             </div>
-            <p class="review-comment">{{ review.comment }}</p>
             <div class="review-footer">
               <small>{{ formatDate(review.timestamp) }}</small>
-              <router-link :to="`/album/${review.albumId}`" class="view-album">
-                View Album
-              </router-link>
             </div>
           </div>
         </div>
@@ -67,8 +72,10 @@ const reviews = ref([])
 const isLoading = ref(true)
 
 onMounted(async () => {
+  userStore.fetchReviewsFromApi()
   // Fetch album names for reviews
-  for (const review of reviews.value) {
+  for (const review of userStore.reviews) {
+    console.log('review', review)
     if (!albumNames.value[review.albumId]) {
       try {
         const albumResponse = await fetch(`https://api.spotify.com/v1/albums/${review.albumId}`, {
@@ -78,6 +85,7 @@ onMounted(async () => {
         })
         if (albumResponse.ok) {
           const albumData = await albumResponse.json()
+          console.log('albumData', albumData)
           albumNames.value[review.albumId] = albumData.name
         }
       } catch (error) {
@@ -85,6 +93,7 @@ onMounted(async () => {
       }
     }
   }
+  console.log('albumNames', albumNames)
   isLoading.value = false
 })
 
@@ -163,6 +172,12 @@ h2 {
   object-fit: cover;
 }
 
+.album-cover-reviews {
+  width: 150px;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
 .album-info {
   padding: 1rem;
 }
@@ -198,26 +213,36 @@ h2 {
   transform: translateY(-2px);
 }
 
-.review-header {
+.review-main {
   display: flex;
+  align-items: top;
+  gap: 1.5rem;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
 }
 
-.review-header h3 {
-  margin: 0;
+.review-details {
+  display: flex;
+  flex-direction: column;
+  justify-content: top;
+  flex: 1;
+}
+
+.review-title {
+  color: #1db954;
+  margin: 0 0 0.5rem 0;
   font-size: 1.1rem;
+}
+
+.review-comment {
+  margin: 0;
+  line-height: 1.5;
 }
 
 .rating {
   color: #ffd700;
   font-size: 1.2rem;
-}
-
-.review-comment {
-  margin: 1rem 0;
-  line-height: 1.5;
+  min-width: 90px; /* adjust as needed for alignment */
+  text-align: right;
 }
 
 .review-footer {
