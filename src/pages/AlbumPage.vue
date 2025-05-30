@@ -250,6 +250,7 @@ const handleDeleteReview = async (reviewId) => {
     display: flex;
     gap: 2rem;
     margin-bottom: 2rem;
+    align-items: center;
 }
 
 .album-cover {
@@ -394,7 +395,11 @@ const handleDeleteReview = async (reviewId) => {
     border-radius: 8px;
     background: rgba(255, 255, 255, 0.1);
     color: white;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2); 
+}
+
+.rating-select option {
+    background: #2d1b69;
 }
 
 .review-input {
@@ -557,6 +562,15 @@ const handleDeleteReview = async (reviewId) => {
     
     .review-date {
         font-size: 0.8rem;
+    }
+
+    .review-actions {
+        margin-top: 10px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        width: 100%;
+        padding-top: 10px;
+        flex-direction: row;
+        justify-content: space-between;
     }
 }
 

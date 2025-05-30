@@ -6,6 +6,7 @@
         <div class="profile-details">
           <p><strong>Name:</strong> {{ userStore.user?.name }}</p>
           <p><strong>Email:</strong> {{ userStore.user?.email }}</p>
+          <p  @click="handleLogout"><strong>Logout</strong></p>
         </div>
       </div>
 
@@ -63,13 +64,14 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+
 
 const userStore = useUserStore()
-const route = useRoute()
 const albumNames = ref({})
 const reviews = ref([])
 const isLoading = ref(true)
+const router = useRouter()
 
 onMounted(async () => {
   userStore.fetchReviewsFromApi()
@@ -99,6 +101,11 @@ onMounted(async () => {
 
 const getAlbumName = (albumId) => {
   return albumNames.value[albumId] || 'Unknown Album'
+}
+
+const handleLogout = () => {
+  userStore.logout()
+  router.push('/login')
 }
 
 const formatDate = (timestamp) => {

@@ -5,74 +5,38 @@
         <h1 v-if="!userStore.isAuthenticated"><router-link to="/login">Login or Register here</router-link></h1>
         <h4 v-if="userStore.isAuthenticated">This homepage will become customized as you follow active members on Spotifind. </h4>
       
-        <div v-if="!newPopularAlbums.length == 0" class="favorites-section">
-        <div class="favorites-header">
-            <h2>Nouveautés populaires </h2>
-        </div>
-        <div class="favorites-list-wrapper">
-            <div class="favorites-list" ref="favoritesList">
-                <router-link
-                v-for="album in newPopularAlbums"
-                :key="album.id"
-                :to="`/album/${album.id}`"
-                class="favorite-album"
-                >
-                <img :src="album.images?.[0]?.url" />
-                <h3>{{album.name}}</h3>
-                </router-link>
-            </div>
-        </div>
-    </div>
-      <div v-if="!newAlbums.length == 0" class="favorites-section">
-        <div class="favorites-header">
-            <h2>Nouveautés Rock</h2>
-        </div>
-        <div class="favorites-list-wrapper">
-            <button class="arrow left" @click="scrollFavorites('left')">&#8592;</button>
-            <div class="favorites-list" ref="favoritesList">
-                <router-link
-                v-for="album in newAlbums"
-                :key="album.id"
-                :to="`/album/${album.id}`"
-                class="favorite-album"
-                >
-                <img :src="album.images?.[0]?.url" />
-                <h3>{{album.name}}</h3>
-                </router-link>
-            </div>
-            <button class="arrow right" @click="scrollFavorites('right')">&#8594;</button>
-        </div>
-    </div>
-    <div v-if="userStore.favorites.length" class="favorites-section">
-        <div class="favorites-header">
-            <h2>Favoris ({{ userStore.favorites.length }})</h2>
-            <router-link to="/favoris" class="all-link">Voir tout</router-link>
-        </div>
-        <div class="favorites-list">
-            <router-link
-            v-for="album in userStore.favorites"
-            :key="album.id"
-            :to="`/album/${album.id}`"
-            class="favorite-album"
-            >
-            <img :src="album.images?.[0]?.url" />
-            <h3>{{album.name}}</h3>
-            </router-link>
-        </div>
-    </div>
+        <AlbumList
+            v-if="newPopularAlbums.length"
+            title="Nouveautés populaires"
+            :albums="newPopularAlbums"
+        />
 
-    <div v-if="albums.length" class="albums-grid">
-      <div v-for="album in albums" :key="album.id" class="album-card">
-        <router-link :to="`/album/${album.id}`">
-          <img :src="album.images[0]?.url" alt="cover" class="album-img" />
-          <div class="album-info">
-            <h3>{{ album.name }}</h3>
-            <p>{{ album.artists[0].name }}</p>
-          </div>
-        </router-link>
-      </div>
+        <AlbumList
+            v-if="newAlbums.length"
+            title="Nouveautés Rock"
+            :albums="newAlbums"
+        />
+
+        <AlbumList
+            v-if="userStore.favorites.length"
+            title="Favoris"
+            :albums="userStore.favorites"
+            :showAllLink="true"
+            allLinkPath="/favoris"
+        />
+
+        <div v-if="albums.length" class="albums-grid">
+            <div v-for="album in albums" :key="album.id" class="album-card">
+                <router-link :to="`/album/${album.id}`">
+                    <img :src="album.images[0]?.url" alt="cover" class="album-img" />
+                    <div class="album-info">
+                        <h3>{{ album.name }}</h3>
+                        <p>{{ album.artists[0].name }}</p>
+                    </div>
+                </router-link>
+            </div>
+        </div>
     </div>
-  </div>
 </template>
 
 <script setup>
@@ -80,6 +44,7 @@ import { useUserStore } from '@/stores/user'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { onMounted } from 'vue'
+import AlbumList from '@/components/AlbumList.vue'
 
 const userStore = useUserStore()
 const searchTerm = ref('')
@@ -188,9 +153,9 @@ function scrollFavorites(direction) {
 .album-info {
   padding: 0.5rem;
 }
+
 .favorites-section {
   margin-top: 3rem;
-  border-top: 1px solid #ddd;
   padding-top: 1rem;
 }
 
@@ -222,13 +187,20 @@ function scrollFavorites(direction) {
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none;  /* IE 10+ */
 }
+
+.favorites-list h3 {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .favorites-list::-webkit-scrollbar {
   display: none; /* Chrome/Safari/Webkit */
 }
 
 .favorite-album img {
-  width: 160px;
-  height: 160px;
+  width: 200px;
+  height: 200px;
   object-fit: cover;
   border-radius: 4px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -240,7 +212,7 @@ function scrollFavorites(direction) {
 }
 
 .favorite-album {
-    max-width: 160px;
+    max-width: 200px;
     margin-right: 20px;
 }
 
@@ -298,6 +270,18 @@ function scrollFavorites(direction) {
   .album-grid {
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 1rem;
+  }
+
+  .favorites-section {
+  border-top: none;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  h4 {
+    font-size: 1rem;
   }
 }
 

@@ -48,7 +48,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { useRouter } from 'vue-router'
 
@@ -256,7 +256,7 @@ const handleLogout = () => {
 
 @media (max-width: 768px) {
   .search-input {
-    width: 200px;
+    width: 40vw;
   }
 
   .header {
