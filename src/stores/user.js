@@ -88,8 +88,8 @@ export const useUserStore = defineStore('user', {
 
     async getSpotifyToken() {
       try {
-        const clientId = '9233dcaa945e40d3a57be6a298733565'
-        const clientSecret = '3f676c5bb59f41afb1871f4537924309'
+        const clientId = '9233dcaa945e40d3a57be6a298733565' //CLIENT_ID 
+        const clientSecret = '3f676c5bb59f41afb1871f4537924309' //CLIENT_SECRET
         const credentials = btoa(`${clientId}:${clientSecret}`)
 
         const res = await fetch('https://accounts.spotify.com/api/token', {
